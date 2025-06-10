@@ -36,34 +36,36 @@ public class ConditionCalculation {
      * @param winningCondition - Advanced by top? top 2?
      * @param rule             - Which rule we're using
      * @param player           - name of player
-     * @param ryukyokuMangan - enable ryukyoku mangan?
+     * @param kiriageMangan    - enable kiriage Mangan?
      * @return winningCondition for this player
      */
-    public static String calculateCondition(Double[] starting, Integer[] currentScore, int playerIndex, int kyotaku, int honba, int winningCondition, Rule rule, String[] player, boolean ryukyokuMangan) {
-        String results = "";
+    public static String calculateCondition(Double[] starting, Integer[] currentScore, int playerIndex, int kyotaku, int honba, int winningCondition, Rule rule, String[] player, boolean kiriageMangan) {
+        StringBuilder results = new StringBuilder();
         int playerCount = currentScore.length;
-        boolean isDealer = (playerIndex == 3); // 假设0是庄家（亲家）
+        boolean isDealer = (playerIndex == 3); // 因为是all last条件，只有playerIndex3是亲家
         boolean resultFound = false;
-        Integer[] newScore;
+        Integer[] newScore; // 没算一次都要重新copy一次值
         // 1. 自摸所有情况
         if (!isDealer) {
             for (int[] tsumoPair : childTsumoArr) {
-                if (ryukyokuMangan && tsumoPair[0] == 2000 && tsumoPair[1] == 3900) continue;
                 newScore = Arrays.copyOf(currentScore, playerCount);
+                if (kiriageMangan && tsumoPair[0] == 2000 && tsumoPair[1] == 3900) continue;
                 adjustScoreTsumo(newScore, playerIndex, tsumoPair, kyotaku, honba);
                 int[] ranking = RankUtil.getRanking(newScore);
                 String pattern = rule.getPattern(newScore);
                 double[] uma = rule.getUma(pattern);
                 double[] total = calcFinalScore(newScore, uma, starting, ranking);
                 if (isQualified(total, playerIndex, winningCondition, starting)) {
-                    results += ("自摸\t" + getYakuName(tsumoPair[0], tsumoPair[1]) + "\n");
+                    results.append("自摸\t")
+                            .append(getYakuName(tsumoPair[0], tsumoPair[1]))
+                            .append("\n");
                     resultFound = true;
                     break;
                 }
             }
         } else {
             for (int j : dealerTsumoArr) {
-                if (ryukyokuMangan && j == 3900) continue;
+                if (kiriageMangan && j == 3900) continue;
                 newScore = Arrays.copyOf(currentScore, playerCount);
                 adjustScoreTsumo(newScore, playerIndex, j, kyotaku, honba);
                 int[] ranking = RankUtil.getRanking(newScore);
@@ -71,14 +73,15 @@ public class ConditionCalculation {
                 double[] uma = rule.getUma(pattern);
                 double[] total = calcFinalScore(newScore, uma, starting, ranking);
                 if (isQualified(total, playerIndex, winningCondition, starting)) {
-                    results += ("自摸\t" + getYakuName(j, true, "tsumo") + "\n");
+                    results.append("自摸\t")
+                            .append(getYakuName(j, true, "tsumo"))
+                            .append("\n");
                     resultFound = true;
                     break;
                 }
             }
         }
-        if (!resultFound) results += "自摸\t无条件\n";
-
+        if (!resultFound) results.append("自摸\t无条件\n");
 
 
         // 2. 荣和所有情况
@@ -86,43 +89,60 @@ public class ConditionCalculation {
             // reset it
             resultFound = false;
             if (i == playerIndex) continue;
-            if (!isDealer) {
-                for (int score : childRonArr) {
-                    if (ryukyokuMangan && score == 7700) continue;
-                    newScore = Arrays.copyOf(currentScore, playerCount);
-                    adjustScoreRon(newScore, i, playerIndex, score, kyotaku, honba);
-                    int[] ranking = RankUtil.getRanking(newScore);
-                    String pattern = rule.getPattern(newScore);
-                    double[] uma = rule.getUma(pattern);
-                    double[] total = calcFinalScore(newScore, uma, starting, ranking);
-                    if (isQualified(total, playerIndex, winningCondition, starting)) {
-                        results += (player[i] + "荣和" + "\t" + getYakuName(score, false, "ron") + "\n");
-                        resultFound = true;
-                        break;
-                    }
-                }
-            } else {
-                for (int score : dealerRonArr) {
-                    if (ryukyokuMangan && score == 11600) continue;
-                    newScore = Arrays.copyOf(currentScore, playerCount);
-                    adjustScoreRon(newScore, i, playerIndex, score, kyotaku, honba);
-                    int[] ranking = RankUtil.getRanking(newScore);
-                    String pattern = rule.getPattern(newScore);
-                    double[] uma = rule.getUma(pattern);
-                    double[] total = calcFinalScore(newScore, uma, starting, ranking);
-                    if (isQualified(total, playerIndex, winningCondition, starting)) {
-                        results += (player[i] + "荣和" + "\t" + getYakuName(score, true, "ron") + "\n");
-                        resultFound = true;
-                        break;
-                    }
+            int[] ronArray = (!isDealer) ? childRonArr : dealerRonArr;
+            for (int score : ronArray) {
+                // 要是切上了就看是不是子家7700或者亲家 11600，是的话不用算
+                if (kiriageMangan &&
+                        (score == 7700 && !isDealer || (score == 11600 && isDealer))) continue;
+
+                newScore = Arrays.copyOf(currentScore, playerCount);
+                adjustScoreRon(newScore, i, playerIndex, score, kyotaku, honba);
+                int[] ranking = RankUtil.getRanking(newScore);
+                String pattern = rule.getPattern(newScore);
+                double[] uma = rule.getUma(pattern);
+                double[] total = calcFinalScore(newScore, uma, starting, ranking);
+                if (isQualified(total, playerIndex, winningCondition, starting)) {
+                    results.append(player[i])
+                            .append("荣和")
+                            .append("\t")
+                            .append(getYakuName(score, isDealer, "ron"))
+                            .append("\n");
+                    resultFound = true;
+                    break;
                 }
             }
-            if (!resultFound) results += (player[i] + "\t荣和 无条件\n");
+            if (!resultFound) results.append(player[i])
+                    .append("\t荣和 无条件\n");
 
         }
 
+        // 放铳情况
+        for (int i = 0; i < playerCount; i++) {
+            if (i == playerIndex) continue;
+            // 看是不是点炮给亲家
+            boolean dealToDealer = (i == 3);
+            int[] ronArr = dealToDealer ? dealerRonArr : childRonArr;
+            int maxSafeRon = -1;
+            for (int ron : ronArr) {
+                newScore = Arrays.copyOf(currentScore, playerCount);
+                adjustScoreRon(newScore, playerIndex, i, ron, kyotaku, honba);
+                int[] ranking = RankUtil.getRanking(newScore);
+                String pattern = rule.getPattern(newScore);
+                double[] uma = rule.getUma(pattern);
+                double[] total = calcFinalScore(newScore, uma, starting, ranking);
+                boolean qualified = isQualified(total, playerIndex, winningCondition, starting);
+                if (!qualified) break;
+                maxSafeRon = ron;
+            }
+            if (maxSafeRon > 0) results.append("对")
+                    .append(player[i])
+                    .append("最多放铳\t")
+                    .append(getYakuName(maxSafeRon, dealToDealer, "ron"))
+                    .append("\n");
+        }
 
-        return results;
+
+        return results.toString();
     }
 
     // 子家自摸（分数变动）
@@ -132,7 +152,7 @@ public class ConditionCalculation {
         // pay[0]: 子家每家支付, pay[1]: 亲家支付
         for (int i = 0; i < n; i++) {
             if (i == playerId) continue;
-            if (i == 3) currentScore[i] -= (pay[1] + 100 * honba); // 假设0号为亲家
+            if (i == 3) currentScore[i] -= (pay[1] + 100 * honba); // 假设3号为亲家
             else currentScore[i] -= (pay[0] + 100 * honba);
         }
         currentScore[playerId] += 2 * pay[0] + pay[1] + 300 * honba + kyotaku;
