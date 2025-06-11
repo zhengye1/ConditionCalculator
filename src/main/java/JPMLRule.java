@@ -8,6 +8,8 @@ public class JPMLRule extends Rule {
         this.patterns.put("01120", new double[]{8, 4, -6, -6});
         this.patterns.put("02011", new double[]{6, 6, -4, -8});
         this.patterns.put("02020", new double[]{6, 6, -6, -6});
+        this.patterns.put("01300", new double[]{8, -8/3.0, -8/3.0, -8/3.0}); // 得问清楚怎么分的....因为除不开....
+        this.patterns.put("03001", new double[]{8/3.0, 8/3.0, 8/3.0, -4});
         this.patterns.put("04000", new double[]{0, 0, 0, 0});
         this.patterns.put("11111", new double[]{12, -1, -3, -8});
         this.patterns.put("11201", new double[]{12, -2, -2, -8});

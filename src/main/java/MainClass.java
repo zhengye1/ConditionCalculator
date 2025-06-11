@@ -17,7 +17,7 @@ public class MainClass {
         int honba = 0;
 
         System.out.println(ConditionCalculation
-                .calculateCondition(starting, currentScore, 0,
+                .calculateCondition(starting, currentScore, 2,
                         kyotaku, honba, 2, Arule, player, false));
 //        for (int i = 0; i < 4; i++) {
 //            final int playerId = i;

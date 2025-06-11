@@ -1,6 +1,4 @@
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class ConditionCalculation {
     // 子家荣和
@@ -26,7 +24,7 @@ public class ConditionCalculation {
             {6000, 12000}, {8000, 16000}, {16000, 32000}, {24000, 48000}, {32000, 64000}};
 
     /**
-     * Calculate for this player winnning condition
+     * Calculate for this player winning condition
      *
      * @param starting         - the score for each player have right now
      * @param currentScore     - Current hanchan score they have
@@ -146,7 +144,7 @@ public class ConditionCalculation {
     }
 
     // 子家自摸（分数变动）
-    static void adjustScoreTsumo(Integer[] currentScore, int playerId, int[] pay, int kyotaku, int honba) {
+    private static void adjustScoreTsumo(Integer[] currentScore, int playerId, int[] pay, int kyotaku, int honba) {
         int n = currentScore.length;
 
         // pay[0]: 子家每家支付, pay[1]: 亲家支付
@@ -179,15 +177,42 @@ public class ConditionCalculation {
     }
 
 
-    // 最终分
-    private static double[] calcFinalScore(Integer[] score, double[] uma, Double[] starting, int[] ranking) {
+    static double[] calcFinalScore(Integer[] score, double[] uma, Double[] starting, int[] ranking) {
         int n = score.length;
         double[] total = new double[n];
+
+        // 1. 统计每个顺位有哪些人
+        // 顺位1开始
+        Map<Integer, List<Integer>> rankToIndices = new HashMap<>();
         for (int i = 0; i < n; i++) {
-            total[i] = Math.round(((score[i] - 30000) / 1000.0 + uma[ranking[i] - 1] + starting[i]) * 10) / 10.0;
+            rankToIndices.computeIfAbsent(ranking[i], x -> new ArrayList<>()).add(i);
+        }
+
+        // 2. 为每组顺位分配uma（高uma优先分给index小的）
+        double[] appliedUma = new double[n];
+        for (Map.Entry<Integer, List<Integer>> entry : rankToIndices.entrySet()) {
+            int rank = entry.getKey();
+            List<Integer> idxList = entry.getValue();
+            idxList.sort(Integer::compareTo); // index小的靠前
+            // 从uma数组里选出连续的k个
+            List<Double> umaPool = new ArrayList<>();
+            for (int j = 0; j < idxList.size(); j++) {
+                umaPool.add(uma[rank - 1 + j]);
+            }
+            // 高到低分配
+            umaPool.sort(Collections.reverseOrder());
+            for (int j = 0; j < idxList.size(); j++) {
+                appliedUma[idxList.get(j)] = umaPool.get(j);
+            }
+        }
+
+        // 3. 最终分
+        for (int i = 0; i < n; i++) {
+            total[i] = Math.round(((score[i] - 30000) / 1000.0 + appliedUma[i] + starting[i]) * 10) / 10.0;
         }
         return total;
     }
+
 
     private static boolean isQualified(double[] total, int playerIndex, int winningCondition, Double[] starting) {
         int n = total.length;

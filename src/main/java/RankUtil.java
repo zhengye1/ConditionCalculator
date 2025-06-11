@@ -24,20 +24,4 @@ public class RankUtil {
         }
         return order;
     }
-
-    public static int[] getRaking(Double[] scores){
-        int n = scores.length;
-        int[] order = new int[n];
-        Double[] temp = Arrays.copyOf(scores, n);
-        Arrays.sort(temp, Collections.reverseOrder());
-        Map<Double, Integer> rankMap = new HashMap<>();
-        int rank = 1;
-        for (Double s : temp) {
-            if (!rankMap.containsKey(s)) rankMap.put(s, rank++);
-        }
-        for (int i = 0; i < n; i++) {
-            order[i] = rankMap.get(scores[i]);
-        }
-        return order;
-    }
 }
