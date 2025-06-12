@@ -10,6 +10,7 @@ public class MahjongConditionCalculator extends JFrame {
     private JTextField honbaField = new JTextField(5);
     private JButton calcButton = new JButton("计算");
     private JTextArea[] resultAreas = new JTextArea[PLAYER_COUNT];
+    private String[] seats = new String[] {"东", "南", "西", "北"};
 
     public MahjongConditionCalculator() {
         setTitle("晋级/优胜条件计算");
@@ -28,11 +29,15 @@ public class MahjongConditionCalculator extends JFrame {
         // 列宽
         Dimension tfDim = new Dimension(68, 25);
 
+        gbc.gridy = 0;
+        gbc.gridx = 0;
+        inputPanel.add(new JLabel("起家"), gbc);
+
         // 表头
         gbc.gridy = 0;
         gbc.gridx = 1;
         for (int i = 0; i < PLAYER_COUNT; i++) {
-            JLabel label = new JLabel("Line " + (i + 1));
+            JLabel label = new JLabel(seats[i]);
             gbc.gridx = i + 1;
             inputPanel.add(label, gbc);
         }
