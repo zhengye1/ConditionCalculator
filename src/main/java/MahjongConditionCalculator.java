@@ -81,7 +81,16 @@ public class MahjongConditionCalculator extends JFrame {
         // Starting
         gbc.gridy = 3;
         gbc.gridx = 0;
-        inputPanel.add(new JLabel("开始前总分"), gbc);
+        // 1. 创建一个小面板把“开始前总分”和问号包起来
+        JPanel startLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        startLabelPanel.add(new JLabel("开始前总分"));
+        JButton helpStartingBtn = getJButton(inputPanel,
+                "开始前总分：指的是这一半庄/一场比赛开打前，各自的积分（包含带入等）。\n如无特殊规定请填0。",
+                "开始前总分说明");
+        startLabelPanel.add(helpStartingBtn);
+        // 用小面板替代单一Label
+        inputPanel.add(startLabelPanel, gbc);
+
         for (int i = 0; i < PLAYER_COUNT; i++) {
             startingFields[i] = new JTextField(6);
             startingFields[i].setPreferredSize(tfDim);
@@ -96,6 +105,15 @@ public class MahjongConditionCalculator extends JFrame {
         // 当前分数
         gbc.gridy = 4;
         gbc.gridx = 0;
+        // 1. 创建一个小面板把“开始前总分”和问号包起来
+        JPanel currentScorePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        currentScorePanel.add(new JLabel("当前分数"));
+        JButton helpCurrentScoreBtn = getJButton(inputPanel,
+                "当前分数：指的是这一半庄目前的得点。\n如无特殊规定请填25000。",
+                "当前分数说明");
+        currentScorePanel.add(helpCurrentScoreBtn);
+        // 用小面板替代单一Label
+        inputPanel.add(currentScorePanel, gbc);
         inputPanel.add(new JLabel("当前分数"), gbc);
         for (int i = 0; i < PLAYER_COUNT; i++) {
             scoreFields[i] = new JTextField(6);
@@ -230,6 +248,20 @@ public class MahjongConditionCalculator extends JFrame {
                 resultAreas[i].setText(playerNames[i] + "晋级条件\n" + output);
             }
         });
+    }
+
+    private static JButton getJButton(JPanel inputPanel, String description, String title) {
+        JButton helpStartingBtn = new JButton("?");
+        helpStartingBtn.setMargin(new Insets(0, 3, 0, 3));
+        helpStartingBtn.setFocusable(false);
+        helpStartingBtn.setToolTipText("点击查看说明");
+        helpStartingBtn.addActionListener(e -> JOptionPane.showMessageDialog(
+                inputPanel,
+                description,
+                title,
+                JOptionPane.INFORMATION_MESSAGE
+        ));
+        return helpStartingBtn;
     }
 
     public static void main(String[] args) {
