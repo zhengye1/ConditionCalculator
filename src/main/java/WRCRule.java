@@ -1,5 +1,4 @@
 import java.util.HashMap;
-import java.util.regex.Pattern;
 
 public class WRCRule extends Rule {
     public WRCRule() {
@@ -12,6 +11,5 @@ public class WRCRule extends Rule {
         this.patterns.put("2020", new double[]{10, 10, -10, -10});
         this.patterns.put("3001", new double[]{5, 5, 5, -15});
         this.patterns.put("4000", new double[]{0, 0, 0, 0});
-
     }
 }
