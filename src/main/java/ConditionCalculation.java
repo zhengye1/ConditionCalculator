@@ -2,26 +2,29 @@ import java.util.*;
 
 public class ConditionCalculation {
     // 子家荣和
-    private final static int[] childRonArr = {1000, 1300, 1600, 2000, 2300,
-            2600, 3200, 3900, 4500, 5200,
-            6400, 7700, 8000, 12000, 16000,
-            24000, 32000, 64000, 96000, 128000};
+    private final static int[] childRonArr = {
+            1000, 1300, 1600, 2000, 2300,
+            2600, 2900, 3200, 3900, 4500,
+            5200, 5800, 6400, 7100, 7700,
+            8000, 12000, 16000, 24000, 32000, 64000, 96000, 128000};
     // 亲家自摸（每家支付）
-    private final static int[] dealerTsumoArr = {500, 700, 800, 1000, 1200,
-            1300, 1600, 2000, 2300, 2600,
-            3200, 3900, 4000, 6000, 8000,
-            12000, 16000, 32000, 48000, 64000};
+    private final static int[] dealerTsumoArr = {
+            500, 700, 800, 1000, 1200,
+            1300, 1500, 1600, 2000, 2300,
+            2600, 2900, 3200, 3600, 3900,
+            4000, 6000, 8000, 12000, 16000, 32000, 48000, 64000};
     // 亲家荣和
-    private final static int[] dealerRonArr = {1500, 2000, 2400, 2900, 3400,
-            3900, 4800, 5800, 6800, 7700, 9600,
-            11600, 12000, 18000, 24000,
-            36000, 48000, 96000, 144000, 192000};
+    private final static int[] dealerRonArr = {
+            1500, 2000, 2400, 2900, 3400,
+            3900, 4400, 4800, 5800, 6800,
+            7700, 8700, 9600, 10600, 11600,
+            12000, 18000, 24000, 36000, 48000, 96000, 144000, 192000};
     // 自摸分数表：子家自摸每家和亲家
     private final static int[][] childTsumoArr = {
             {300, 500}, {400, 700}, {400, 800}, {500, 1000}, {600, 1200},
-            {700, 1300}, {800, 1600}, {1000, 2000}, {1200, 2300}, {1300, 2600},
-            {1600, 3200}, {2000, 3900}, {2000, 4000}, {3000, 6000}, {4000, 8000},
-            {6000, 12000}, {8000, 16000}, {16000, 32000}, {24000, 48000}, {32000, 64000}};
+            {700, 1300}, {800, 1500}, {800, 1600}, {1000, 2000}, {1200, 2300},
+            {1300, 2600}, {1500, 2900}, {1600, 3200},{1800, 3600}, {2000, 3900},
+            {2000, 4000}, {3000, 6000}, {4000, 8000}, {6000, 12000}, {8000, 16000}, {16000, 32000}, {24000, 48000}, {32000, 64000}};
 
     /**
      * Calculate for this player winning condition
@@ -37,49 +40,63 @@ public class ConditionCalculation {
      * @param kiriageMangan    - enable kiriage Mangan?
      * @return winningCondition for this player
      */
-    public static String calculateCondition(Double[] starting, Integer[] currentScore, int playerIndex, int kyotaku, int honba, int winningCondition, Rule rule, String[] player, boolean kiriageMangan) {
+    public static String calculateCondition(Double[] starting, Integer[] currentScore, int playerIndex,
+                                            int kyotaku, int honba, int winningCondition,
+                                            Rule rule, String[] player, boolean kiriageMangan, int dealerIndex) {
         StringBuilder results = new StringBuilder();
         int playerCount = currentScore.length;
-        boolean isDealer = (playerIndex == 3); // 因为是all last条件，只有playerIndex3是亲家
-        boolean resultFound = false;
+        boolean resultFound;
+        boolean isDealer = (playerIndex == dealerIndex); // 因为是all last条件，只有playerIndex3是亲家
         Integer[] newScore; // 没算一次都要重新copy一次值
+        List<Boolean> resultList = new ArrayList<>();
+        List<int[]> tsumoPairs = new ArrayList<>(); // 子家
+        List<Integer> tsumoDealer = new ArrayList<>(); // 亲家
         // 1. 自摸所有情况
         if (!isDealer) {
             for (int[] tsumoPair : childTsumoArr) {
                 newScore = Arrays.copyOf(currentScore, playerCount);
                 if (kiriageMangan && tsumoPair[0] == 2000 && tsumoPair[1] == 3900) continue;
+                tsumoPairs.add(tsumoPair);
                 adjustScoreTsumo(newScore, playerIndex, tsumoPair, kyotaku, honba);
                 int[] ranking = RankUtil.getRanking(newScore);
                 String pattern = rule.getPattern(newScore);
                 double[] uma = rule.getUma(pattern);
                 double[] total = calcFinalScore(newScore, uma, starting, ranking);
-                if (isQualified(total, playerIndex, winningCondition, starting)) {
-                    results.append("自摸\t")
-                            .append(getYakuName(tsumoPair[0], tsumoPair[1]))
-                            .append("\n");
-                    resultFound = true;
-                    break;
-                }
+                resultList.add (isQualified(total, playerIndex, winningCondition, starting));
             }
         } else {
             for (int j : dealerTsumoArr) {
                 if (kiriageMangan && j == 3900) continue;
+                tsumoDealer.add(j);
                 newScore = Arrays.copyOf(currentScore, playerCount);
                 adjustScoreTsumo(newScore, playerIndex, j, kyotaku, honba);
                 int[] ranking = RankUtil.getRanking(newScore);
                 String pattern = rule.getPattern(newScore);
                 double[] uma = rule.getUma(pattern);
                 double[] total = calcFinalScore(newScore, uma, starting, ranking);
-                if (isQualified(total, playerIndex, winningCondition, starting)) {
-                    results.append("自摸\t")
-                            .append(getYakuName(j, true, "tsumo"))
-                            .append("\n");
-                    resultFound = true;
-                    break;
-                }
+                resultList.add (isQualified(total, playerIndex, winningCondition, starting));
             }
         }
-        if (!resultFound) results.append("自摸\t无条件\n");
+        // 如果整个list都是false的话，那就简单输出自摸无条件
+        if (resultList.stream().noneMatch(x-> x)){
+            results.append("自摸无条件\n");
+        }else{
+            List<?> tsumoList = isDealer ? tsumoDealer : tsumoPairs;
+            boolean last = false;
+            int start = -1;
+            for (int i = 0; i < resultList.size(); i++) {
+                boolean curr = resultList.get(i);
+                if (!last && curr) start = i;
+                if (last && !curr) {
+                    printTsumoRange(results, tsumoList, start, i - 1, isDealer);
+                    start = -1;
+                }
+                last = curr;
+            }
+            if (last) {
+                printTsumoRange(results, tsumoList, start, resultList.size() - 1, isDealer);
+            }
+        }
 
 
         // 2. 荣和所有情况
@@ -252,12 +269,10 @@ public class ConditionCalculation {
             // 同分同starting，只有独占才晋级
             return same == 1;
         } else if (current.total > thresholdPlayer.total) {
-            return true;
-        } else if (Math.abs(current.total - thresholdPlayer.total) < 1e-6 && current.starting > thresholdPlayer.starting) {
             // total同分但starting高，排名会被提前，不会出现在threshold上，已经在晋级线内
-            return true;
-        }
-        return false;
+                return true;
+        } else
+            return Math.abs(current.total - thresholdPlayer.total) < 1e-6 && current.starting > thresholdPlayer.starting;
     }
 
     private static String getYakuName(int x, int y) {
@@ -292,5 +307,50 @@ public class ConditionCalculation {
 
         }
     }
+    private static void printTsumoRange(StringBuilder results, List<?> tsumoList, int start, int end, boolean isDealer) {
+        if (start == end) {
+            // 只有一个
+            if (isDealer) {
+                results.append("自摸\t")
+                        .append(getYakuName((int) tsumoList.get(start), true, "tsumo"))
+                        .append("\n");
+            } else {
+                int[] arr = (int[]) tsumoList.get(start);
+                results.append("自摸\t")
+                        .append(getYakuName(arr[0], arr[1]))
+                        .append("\n");
+            }
+        } else if (end == tsumoList.size() - 1) {
+            // 一直true到最后
+            if (isDealer) {
+                results.append("自摸\t")
+                        .append(getYakuName((int) tsumoList.get(start), true, "tsumo"))
+                        .append("以上\n");
+            } else {
+                int[] arr = (int[]) tsumoList.get(start);
+                results.append("自摸\t")
+                        .append(getYakuName(arr[0], arr[1]))
+                        .append("以上\n");
+            }
+        } else {
+            // 中间一段
+            if (isDealer) {
+                results.append("自摸\t")
+                        .append(getYakuName((int) tsumoList.get(start), true, "tsumo"))
+                        .append("以上")
+                        .append(getYakuName((int) tsumoList.get(end), true, "tsumo"))
+                        .append("以下\n");
+            } else {
+                int[] arrS = (int[]) tsumoList.get(start);
+                int[] arrE = (int[]) tsumoList.get(end);
+                results.append("自摸\t")
+                        .append(getYakuName(arrS[0], arrS[1]))
+                        .append("以上")
+                        .append(getYakuName(arrE[0], arrE[1]))
+                        .append("以下\n");
+            }
+        }
+    }
+
 
 }
