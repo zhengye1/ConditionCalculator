@@ -290,7 +290,7 @@ public class MahjongConditionCalculator extends JFrame {
                 case "WRC-R" -> new WRCRRule();
                 case null, default -> new JPMLRule();
             };
-            int winningCondition = 1; // or 从 advanceBox 取
+            int winningCondition = advanceBox.getSelectedIndex() + 1;
 
             int dealerIndex = 3;
             for (int i = 0; i < PLAYER_COUNT; i++) {
