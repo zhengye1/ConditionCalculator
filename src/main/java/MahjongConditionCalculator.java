@@ -1,5 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 
 public class MahjongConditionCalculator extends JFrame {
     private static final int PLAYER_COUNT = 4;
@@ -9,7 +10,6 @@ public class MahjongConditionCalculator extends JFrame {
     private final JTextField kyotakuField = new JTextField(5);
     private final JTextField honbaField = new JTextField(5);
     private final JTextArea[] resultAreas = new JTextArea[PLAYER_COUNT];
-    // ==== 新增亲家选择 ====
     private final JRadioButton[] dealerButtons = new JRadioButton[PLAYER_COUNT];
 
     public MahjongConditionCalculator() {
@@ -17,21 +17,19 @@ public class MahjongConditionCalculator extends JFrame {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(1280, 720); // 推荐更宽
         setLocationRelativeTo(null);
-
+        // ----------- 输入panel ------------
         JPanel inputPanel = new JPanel();
         inputPanel.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-
         gbc.insets = new Insets(7, 12, 7, 12);
         gbc.fill = GridBagConstraints.NONE;
         gbc.weightx = 0;
-
         Dimension tfDim = new Dimension(68, 25);
 
-        // ==== 亲家选择（单独一行推荐加在最上面） ====
+        // 亲家选择
         gbc.gridy = 0;
         gbc.gridx = 0;
-        gbc.gridwidth = PLAYER_COUNT ;
+        gbc.gridwidth = PLAYER_COUNT;
         JPanel dealerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         dealerPanel.add(new JLabel("当前亲家："));
         String[] seats = new String[]{"东", "南", "西", "北"};
@@ -41,18 +39,15 @@ public class MahjongConditionCalculator extends JFrame {
             dealerGroup.add(dealerButtons[i]);
             dealerPanel.add(dealerButtons[i]);
         }
-        dealerButtons[0].setSelected(true); // 默认东家
+        dealerButtons[3].setSelected(true);
         inputPanel.add(dealerPanel, gbc);
         gbc.gridwidth = 1;
 
-        // ===== 下面恢复你的输入区 =====
+        // 表头
         gbc.gridy = 1;
         gbc.gridx = 0;
         inputPanel.add(new JLabel("座次"), gbc);
-
-        // 表头
         gbc.gridy = 1;
-        gbc.gridx = 1;
         for (int i = 0; i < PLAYER_COUNT; i++) {
             JLabel label = new JLabel(seats[i]);
             gbc.gridx = i + 1;
@@ -78,17 +73,15 @@ public class MahjongConditionCalculator extends JFrame {
         inputPanel.add(Box.createHorizontalGlue(), gbc);
         gbc.weightx = 0;
 
-        // Starting
+        // 开始前总分
         gbc.gridy = 3;
         gbc.gridx = 0;
-        // 1. 创建一个小面板把“开始前总分”和问号包起来
         JPanel startLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         startLabelPanel.add(new JLabel("开始前总分"));
         JButton helpStartingBtn = getJButton(inputPanel,
                 "开始前总分：指的是这一半庄/一场比赛开打前，各自的积分（包含带入等）。\n如无特殊规定请填0。",
                 "开始前总分说明");
         startLabelPanel.add(helpStartingBtn);
-        // 用小面板替代单一Label
         inputPanel.add(startLabelPanel, gbc);
 
         for (int i = 0; i < PLAYER_COUNT; i++) {
@@ -105,16 +98,14 @@ public class MahjongConditionCalculator extends JFrame {
         // 当前分数
         gbc.gridy = 4;
         gbc.gridx = 0;
-        // 1. 创建一个小面板把“开始前总分”和问号包起来
         JPanel currentScorePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         currentScorePanel.add(new JLabel("当前分数"));
         JButton helpCurrentScoreBtn = getJButton(inputPanel,
                 "当前分数：指的是这一半庄目前的得点。\n如无特殊规定请填25000。",
                 "当前分数说明");
         currentScorePanel.add(helpCurrentScoreBtn);
-        // 用小面板替代单一Label
         inputPanel.add(currentScorePanel, gbc);
-        inputPanel.add(new JLabel("当前分数"), gbc);
+
         for (int i = 0; i < PLAYER_COUNT; i++) {
             scoreFields[i] = new JTextField(6);
             scoreFields[i].setPreferredSize(tfDim);
@@ -153,7 +144,7 @@ public class MahjongConditionCalculator extends JFrame {
 
         gbc.gridx = 5;
         inputPanel.add(new JLabel("供托"), gbc);
-        // 创建一个小面板装供托输入框和000
+
         JPanel kyotakuPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         kyotakuPanel.add(kyotakuField);
         kyotakuPanel.add(new JLabel("x1000"));
@@ -174,19 +165,35 @@ public class MahjongConditionCalculator extends JFrame {
         calcButton.setPreferredSize(new Dimension(65, 29));
         inputPanel.add(calcButton, gbc);
 
+        // 新增“危险区间”按钮
         gbc.gridx = 10;
+        JButton dangerButton = new JButton("危险区间");
+        dangerButton.setPreferredSize(new Dimension(85, 29));
+        inputPanel.add(dangerButton, gbc);
+
+        gbc.gridx = 11;
         gbc.weightx = 1;
         inputPanel.add(Box.createHorizontalGlue(), gbc);
         gbc.weightx = 0;
 
-        // 输出区域
-        JPanel outputPanel = new JPanel(new GridLayout(2, 2, 12, 12));
-        Font resultFont = new Font(Font.MONOSPACED, Font.PLAIN, 13);
+        // ---------------- 听牌分支输出 -----------------
+        JTextArea tenpaiArea = new JTextArea(17, 42);
+        tenpaiArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 11)); // 新的字体更小
+        tenpaiArea.setLineWrap(true);
+        tenpaiArea.setWrapStyleWord(true);
+        tenpaiArea.setEditable(false);
 
+
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.add(inputPanel, BorderLayout.CENTER);
+        topPanel.add(tenpaiArea, BorderLayout.EAST);
+
+        // --------------- 结果输出 ---------------
+        JPanel outputPanel = new JPanel(new GridLayout(2, 2, 12, 12));
         for (int i = 0; i < PLAYER_COUNT; i++) {
             JPanel playerPanel = new JPanel(new BorderLayout(5, 5));
             resultAreas[i] = new JTextArea(7, 22);
-            resultAreas[i].setFont(resultFont);
+            resultAreas[i].setFont(new Font(Font.MONOSPACED, Font.PLAIN, 11));
             resultAreas[i].setLineWrap(true);
             resultAreas[i].setWrapStyleWord(true);
             resultAreas[i].setEditable(false);
@@ -196,15 +203,14 @@ public class MahjongConditionCalculator extends JFrame {
         }
 
         getContentPane().setLayout(new BorderLayout());
-        getContentPane().add(inputPanel, BorderLayout.NORTH);
-        getContentPane().add(outputPanel, BorderLayout.CENTER);
+        getContentPane().add(topPanel, BorderLayout.NORTH); // 输入 + 听牌区
+        getContentPane().add(outputPanel, BorderLayout.CENTER); // 四人结果区
 
         ruleBox.addActionListener(e -> {
             String ruleType = (String) ruleBox.getSelectedItem();
             kiriageBox.setSelected(!"A规".equals(ruleType));
         });
 
-        // ========= 修改这里：获取当前亲家index并传给算法 =========
         calcButton.addActionListener(e -> {
             String[] playerNames = new String[PLAYER_COUNT];
             Double[] starting = new Double[PLAYER_COUNT];
@@ -232,8 +238,7 @@ public class MahjongConditionCalculator extends JFrame {
             };
             int winningCondition = advanceBox.getSelectedIndex() + 1;
 
-            // ==== 这里读取当前亲家是谁 ====
-            int dealerIndex = 0;
+            int dealerIndex = 3;
             for (int i = 0; i < PLAYER_COUNT; i++) {
                 if (dealerButtons[i].isSelected()) {
                     dealerIndex = i;
@@ -247,6 +252,59 @@ public class MahjongConditionCalculator extends JFrame {
                 );
                 resultAreas[i].setText(playerNames[i] + "晋级条件\n" + output);
             }
+
+            // 听牌分支一览放入tenpaiArea
+            List<TenpaiAdvanceDecision.DecisionResult> results =
+                    TenpaiAdvanceDecision.getAllTenpaiAdvance(
+                            starting, score, rule, playerNames, winningCondition, dealerIndex
+                    );
+            StringBuilder sb = new StringBuilder("【听牌分支一览】\n");
+            for (TenpaiAdvanceDecision.DecisionResult r : results) {
+                sb.append(r).append("\n");
+            }
+            tenpaiArea.setText(sb.toString());
+        });
+        // 危险区间按钮监听
+        dangerButton.addActionListener(e -> {
+            String[] playerNames = new String[PLAYER_COUNT];
+            Double[] starting = new Double[PLAYER_COUNT];
+            Integer[] score = new Integer[PLAYER_COUNT];
+            for (int i = 0; i < PLAYER_COUNT; i++) {
+                playerNames[i] = nameFields[i].getText().trim();
+                try { starting[i] = Double.parseDouble(startingFields[i].getText().trim()); }
+                catch (Exception ex) { starting[i] = 0.0; }
+                try { score[i] = Integer.parseInt(scoreFields[i].getText().trim()); }
+                catch (Exception ex) { score[i] = 25000; }
+            }
+            int kyotaku = 0, honba = 0;
+            try { kyotaku = Integer.parseInt(kyotakuField.getText().trim()) * 1000; }
+            catch (Exception ignored) { }
+            try { honba = Integer.parseInt(honbaField.getText().trim()); }
+            catch (Exception ignored) { }
+
+            boolean kiriageMangan = kiriageBox.isSelected();
+            String ruleType = (String) ruleBox.getSelectedItem();
+            Rule rule = switch (ruleType) {
+                case "WRC" -> new WRCRule();
+                case "M League" -> new MLeague();
+                case "WRC-R" -> new WRCRRule();
+                case null, default -> new JPMLRule();
+            };
+            int winningCondition = 1; // or 从 advanceBox 取
+
+            int dealerIndex = 3;
+            for (int i = 0; i < PLAYER_COUNT; i++) {
+                if (dealerButtons[i].isSelected()) {
+                    dealerIndex = i;
+                    break;
+                }
+            }
+
+            DangerDialog dialog = new DangerDialog(
+                    this, starting, score, kyotaku, honba, winningCondition, rule,
+                    playerNames, kiriageMangan, dealerIndex
+            );
+            dialog.setVisible(true);
         });
     }
 

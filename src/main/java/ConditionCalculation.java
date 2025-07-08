@@ -2,29 +2,13 @@ import java.util.*;
 
 public class ConditionCalculation {
     // 子家荣和
-    private final static int[] childRonArr = {
-            1000, 1300, 1600, 2000, 2300,
-            2600, 2900, 3200, 3900, 4500,
-            5200, 5800, 6400, 7100, 7700,
-            8000, 12000, 16000, 24000, 32000, 64000, 96000, 128000};
+    private final static int[] childRonArr = {1000, 1300, 1600, 2000, 2300, 2600, 2900, 3200, 3900, 4500, 5200, 5800, 6400, 7100, 7700, 8000, 12000, 16000, 24000, 32000, 64000, 96000, 128000};
     // 亲家自摸（每家支付）
-    private final static int[] dealerTsumoArr = {
-            500, 700, 800, 1000, 1200,
-            1300, 1500, 1600, 2000, 2300,
-            2600, 2900, 3200, 3600, 3900,
-            4000, 6000, 8000, 12000, 16000, 32000, 48000, 64000};
+    private final static int[] dealerTsumoArr = {500, 700, 800, 1000, 1200, 1300, 1500, 1600, 2000, 2300, 2600, 2900, 3200, 3600, 3900, 4000, 6000, 8000, 12000, 16000, 32000, 48000, 64000};
     // 亲家荣和
-    private final static int[] dealerRonArr = {
-            1500, 2000, 2400, 2900, 3400,
-            3900, 4400, 4800, 5800, 6800,
-            7700, 8700, 9600, 10600, 11600,
-            12000, 18000, 24000, 36000, 48000, 96000, 144000, 192000};
+    private final static int[] dealerRonArr = {1500, 2000, 2400, 2900, 3400, 3900, 4400, 4800, 5800, 6800, 7700, 8700, 9600, 10600, 11600, 12000, 18000, 24000, 36000, 48000, 96000, 144000, 192000};
     // 自摸分数表：子家自摸每家和亲家
-    private final static int[][] childTsumoArr = {
-            {300, 500}, {400, 700}, {400, 800}, {500, 1000}, {600, 1200},
-            {700, 1300}, {800, 1500}, {800, 1600}, {1000, 2000}, {1200, 2300},
-            {1300, 2600}, {1500, 2900}, {1600, 3200},{1800, 3600}, {2000, 3900},
-            {2000, 4000}, {3000, 6000}, {4000, 8000}, {6000, 12000}, {8000, 16000}, {16000, 32000}, {24000, 48000}, {32000, 64000}};
+    private final static int[][] childTsumoArr = {{300, 500}, {400, 700}, {400, 800}, {500, 1000}, {600, 1200}, {700, 1300}, {800, 1500}, {800, 1600}, {1000, 2000}, {1200, 2300}, {1300, 2600}, {1500, 2900}, {1600, 3200}, {1800, 3600}, {2000, 3900}, {2000, 4000}, {3000, 6000}, {4000, 8000}, {6000, 12000}, {8000, 16000}, {16000, 32000}, {24000, 48000}, {32000, 64000}};
 
     /**
      * Calculate for this player winning condition
@@ -40,9 +24,7 @@ public class ConditionCalculation {
      * @param kiriageMangan    - enable kiriage Mangan?
      * @return winningCondition for this player
      */
-    public static String calculateCondition(Double[] starting, Integer[] currentScore, int playerIndex,
-                                            int kyotaku, int honba, int winningCondition,
-                                            Rule rule, String[] player, boolean kiriageMangan, int dealerIndex) {
+    public static String calculateCondition(Double[] starting, Integer[] currentScore, int playerIndex, int kyotaku, int honba, int winningCondition, Rule rule, String[] player, boolean kiriageMangan, int dealerIndex) {
         StringBuilder results = new StringBuilder();
         int playerCount = currentScore.length;
         boolean isDealer = (playerIndex == dealerIndex);
@@ -61,7 +43,7 @@ public class ConditionCalculation {
                 String pattern = rule.getPattern(newScore);
                 double[] uma = rule.getUma(pattern);
                 double[] total = calcFinalScore(newScore, uma, starting, ranking);
-                resultList.add (isQualified(total, playerIndex, winningCondition, starting));
+                resultList.add(isQualified(total, playerIndex, winningCondition, starting));
             }
         } else {
             for (int j : dealerTsumoArr) {
@@ -73,13 +55,14 @@ public class ConditionCalculation {
                 String pattern = rule.getPattern(newScore);
                 double[] uma = rule.getUma(pattern);
                 double[] total = calcFinalScore(newScore, uma, starting, ranking);
-                resultList.add (isQualified(total, playerIndex, winningCondition, starting));
+                resultList.add(isQualified(total, playerIndex, winningCondition, starting));
             }
         }
         // 如果整个list都是false的话，那就简单输出自摸无条件
-        if (resultList.stream().noneMatch(x-> x)){
+        if (resultList.stream()
+                .noneMatch(x -> x)) {
             results.append("自摸无条件\n");
-        }else{
+        } else {
             List<?> tsumoList = isDealer ? tsumoDealer : tsumoPairs;
             boolean last = false;
             int start = -1;
@@ -105,8 +88,7 @@ public class ConditionCalculation {
             int[] ronArray = (!isDealer) ? childRonArr : dealerRonArr;
             for (int score : ronArray) {
                 // 要是切上了就看是不是子家7700或者亲家 11600，是的话不用算
-                if (kiriageMangan &&
-                        (score == 7700 && !isDealer || (score == 11600 && isDealer))) continue;
+                if (kiriageMangan && (score == 7700 && !isDealer || (score == 11600 && isDealer))) continue;
                 ronList.add(score);
                 newScore = Arrays.copyOf(currentScore, playerCount);
                 adjustScoreRon(newScore, i, playerIndex, score, kyotaku, honba);
@@ -114,12 +96,13 @@ public class ConditionCalculation {
                 String pattern = rule.getPattern(newScore);
                 double[] uma = rule.getUma(pattern);
                 double[] total = calcFinalScore(newScore, uma, starting, ranking);
-                resultList.add (isQualified(total, playerIndex, winningCondition, starting));
+                resultList.add(isQualified(total, playerIndex, winningCondition, starting));
             }
-            if (resultList.stream().noneMatch(x-> x)){
+            if (resultList.stream()
+                    .noneMatch(x -> x)) {
                 results.append(player[i])
                         .append("\t荣和\t无条件");
-            }else{
+            } else {
                 boolean last = false;
                 int start = -1;
                 for (int j = 0; j < resultList.size(); j++) {
@@ -138,42 +121,44 @@ public class ConditionCalculation {
 
         }
 
-        // 3. 放铳情况
-        for (int i = 0; i < playerCount; i++) {
-            resultList.clear();
-            List<Integer> ronList = new ArrayList<>();
-            if (i == playerIndex) continue;
-            // 看是不是点炮给亲家
-            boolean dealToDealer = (i == dealerIndex);
-            int[] ronArr = dealToDealer ? dealerRonArr : childRonArr;
-            for (int ron : ronArr) {
-                // 切上了就看是不是子家7700或者亲家 11600，是的话不用算
-                if (kiriageMangan &&
-                        (ron == 7700 && !dealToDealer || (ron == 11600 && dealToDealer))) continue;
-                newScore = Arrays.copyOf(currentScore, playerCount);
-                ronList.add(ron);
-                adjustScoreRon(newScore, playerIndex, i, ron, kyotaku, honba);
-                int[] ranking = RankUtil.getRanking(newScore);
-                String pattern = rule.getPattern(newScore);
-                double[] uma = rule.getUma(pattern);
-                double[] total = calcFinalScore(newScore, uma, starting, ranking);
-                resultList.add(isQualified(total, playerIndex, winningCondition, starting));
-            }
-            if (resultList.stream().anyMatch(x-> x)){
-                // 点了还能晋级就看区间
-                boolean last = false;
-                int start = -1;
-                for (int j = 0; j < resultList.size(); j++) {
-                    boolean curr = resultList.get(j);
-                    if (!last && curr) start = j;
-                    if (last && !curr) {
-                        printDealinRange(results, ronList, start, j - 1, isDealer, player[i]);
-                        start = -1;
-                    }
-                    last = curr;
+        if (winningCondition != 1) {
+            // 3. 放铳情况
+            for (int i = 0; i < playerCount; i++) {
+                resultList.clear();
+                List<Integer> ronList = new ArrayList<>();
+                if (i == playerIndex) continue;
+                // 看是不是点炮给亲家
+                boolean dealToDealer = (i == dealerIndex);
+                int[] ronArr = dealToDealer ? dealerRonArr : childRonArr;
+                for (int ron : ronArr) {
+                    // 切上了就看是不是子家7700或者亲家 11600，是的话不用算
+                    if (kiriageMangan && (ron == 7700 && !dealToDealer || (ron == 11600 && dealToDealer))) continue;
+                    newScore = Arrays.copyOf(currentScore, playerCount);
+                    ronList.add(ron);
+                    adjustScoreRon(newScore, playerIndex, i, ron, kyotaku, honba);
+                    int[] ranking = RankUtil.getRanking(newScore);
+                    String pattern = rule.getPattern(newScore);
+                    double[] uma = rule.getUma(pattern);
+                    double[] total = calcFinalScore(newScore, uma, starting, ranking);
+                    resultList.add(isQualified(total, playerIndex, winningCondition, starting));
                 }
-                if (last) {
-                    printDealinRange(results, ronList, start, resultList.size() - 1, isDealer, player[i]);
+                if (resultList.stream()
+                        .anyMatch(x -> x)) {
+                    // 点了还能晋级就看区间
+                    boolean last = false;
+                    int start = -1;
+                    for (int j = 0; j < resultList.size(); j++) {
+                        boolean curr = resultList.get(j);
+                        if (!last && curr) start = j;
+                        if (last && !curr) {
+                            printDealinRange(results, ronList, start, j - 1, isDealer, player[i]);
+                            start = -1;
+                        }
+                        last = curr;
+                    }
+                    if (last) {
+                        printDealinRange(results, ronList, start, resultList.size() - 1, isDealer, player[i]);
+                    }
                 }
             }
         }
@@ -197,10 +182,8 @@ public class ConditionCalculation {
                     // 模拟“other”自摸，把自己(playerIndex)视作失分方
                     for (int i = 0; i < playerCount; i++) {
                         if (i == other) continue;
-                        if (i == dealerIndex)
-                            newScore[i] -= (tsumoPair[1] + 100 * honba);
-                        else
-                            newScore[i] -= (tsumoPair[0] + 100 * honba);
+                        if (i == dealerIndex) newScore[i] -= (tsumoPair[1] + 100 * honba);
+                        else newScore[i] -= (tsumoPair[0] + 100 * honba);
                     }
                     newScore[other] += 2 * tsumoPair[0] + tsumoPair[1] + 300 * honba + kyotaku;
 
@@ -211,7 +194,8 @@ public class ConditionCalculation {
                     beTsumoResultList.add(isQualified(total, playerIndex, winningCondition, starting));
                 }
                 // 输出
-                if (beTsumoResultList.stream().anyMatch(x -> x)) {
+                if (beTsumoResultList.stream()
+                        .anyMatch(x -> x)) {
                     boolean last = false;
                     int start = -1;
                     for (int i = 0; i < beTsumoResultList.size(); i++) {
@@ -247,7 +231,8 @@ public class ConditionCalculation {
                     beTsumoResultList.add(isQualified(total, playerIndex, winningCondition, starting));
                 }
                 // 输出
-                if (beTsumoResultList.stream().anyMatch(x -> x)) {
+                if (beTsumoResultList.stream()
+                        .anyMatch(x -> x)) {
                     boolean last = false;
                     int start = -1;
                     for (int i = 0; i < beTsumoResultList.size(); i++) {
@@ -268,6 +253,66 @@ public class ConditionCalculation {
 
 
         return results.toString();
+    }
+
+    public static String calcDangerByOthersDealIn(
+            Double[] starting, Integer[] currentScore, int myIdx,
+            int kyotaku, int honba, int winningCondition,
+            Rule rule, String[] playerNames, boolean kiriageMangan, int dealerIndex) {
+        int n = currentScore.length;
+        StringBuilder result = new StringBuilder();
+
+        for (int loser = 0; loser < n; loser++) {
+            if (loser == myIdx) continue;
+            for (int winner = 0; winner < n; winner++) {
+                if (winner == myIdx || winner == loser) continue;
+
+                // 点炮给dealer还是子家
+                boolean winnerIsDealer = (winner == dealerIndex);
+                int[] ronArr = winnerIsDealer ? dealerRonArr : childRonArr;
+
+                List<Boolean> loseDanger = new ArrayList<>();
+
+                for (int ron : ronArr) {
+                    if (kiriageMangan && (
+                            (!winnerIsDealer && ron == 7700) ||
+                                    (winnerIsDealer && ron == 11600))) continue;
+                    Integer[] tempScore = Arrays.copyOf(currentScore, n);
+                    adjustScoreRon(tempScore, loser, winner, ron, kyotaku, honba);
+
+                    int[] ranking = RankUtil.getRanking(tempScore);
+                    String pattern = rule.getPattern(tempScore);
+                    double[] uma = rule.getUma(pattern);
+                    double[] total = calcFinalScore(tempScore, uma, starting, ranking);
+
+                    boolean qualified = isQualified(total, myIdx, winningCondition, starting);
+                    loseDanger.add(!qualified);  // true代表被逆转
+                }
+
+                // 输出区间
+                if (loseDanger.stream().anyMatch(x -> x)) {
+                    boolean last = false;
+                    int start = -1;
+                    for (int j = 0; j < loseDanger.size(); j++) {
+                        boolean curr = loseDanger.get(j);
+                        if (!last && curr) start = j;
+                        if (last && !curr) {
+                            printDealInDangerRange(
+                                    result, ronArr, start, j - 1, winnerIsDealer,
+                                    playerNames[loser], playerNames[winner]);
+                            start = -1;
+                        }
+                        last = curr;
+                    }
+                    if (last) {
+                        printDealInDangerRange(
+                                result, ronArr, start, loseDanger.size() - 1, winnerIsDealer,
+                                playerNames[loser], playerNames[winner]);
+                    }
+                }
+            }
+        }
+        return result.toString();
     }
 
     // 子家自摸（分数变动）
@@ -312,7 +357,8 @@ public class ConditionCalculation {
         // 顺位1开始
         Map<Integer, List<Integer>> rankToIndices = new HashMap<>();
         for (int i = 0; i < n; i++) {
-            rankToIndices.computeIfAbsent(ranking[i], x -> new ArrayList<>()).add(i);
+            rankToIndices.computeIfAbsent(ranking[i], x -> new ArrayList<>())
+                    .add(i);
         }
 
         // 2. 为每组顺位分配uma（高uma优先分给index小的）
@@ -359,8 +405,7 @@ public class ConditionCalculation {
         // 统计有多少人完全一样（total和starting全相等）
         int same = 0;
         for (PlayerScore ps : arr) {
-            if (Math.abs(ps.total - thresholdPlayer.total) < 1e-6
-                    && Math.abs(ps.starting - thresholdPlayer.starting) < 1e-6) {
+            if (Math.abs(ps.total - thresholdPlayer.total) < 1e-6 && Math.abs(ps.starting - thresholdPlayer.starting) < 1e-6) {
                 same++;
             }
         }
@@ -374,13 +419,12 @@ public class ConditionCalculation {
         }
         if (current == null) return false;
 
-        if (Math.abs(current.total - thresholdPlayer.total) < 1e-6
-                && Math.abs(current.starting - thresholdPlayer.starting) < 1e-6) {
+        if (Math.abs(current.total - thresholdPlayer.total) < 1e-6 && Math.abs(current.starting - thresholdPlayer.starting) < 1e-6) {
             // 同分同starting，只有独占才晋级
             return same == 1;
         } else if (current.total > thresholdPlayer.total) {
             // total同分但starting高，排名会被提前，不会出现在threshold上，已经在晋级线内
-                return true;
+            return true;
         } else
             return Math.abs(current.total - thresholdPlayer.total) < 1e-6 && current.starting > thresholdPlayer.starting;
     }
@@ -417,6 +461,7 @@ public class ConditionCalculation {
 
         }
     }
+
     private static void printTsumoRange(StringBuilder results, List<?> tsumoList, int start, int end, boolean isDealer) {
         if (start == end) {
             // 只有一个
@@ -461,8 +506,8 @@ public class ConditionCalculation {
             }
         }
     }
-    private static void printRonRange(StringBuilder results, List<Integer> ronList, int start, int end,
-                                      boolean isDealer, String dealinPlayerName) {
+
+    private static void printRonRange(StringBuilder results, List<Integer> ronList, int start, int end, boolean isDealer, String dealinPlayerName) {
         if (start == end) {
             // 只有一个
             if (isDealer) {
@@ -503,104 +548,147 @@ public class ConditionCalculation {
                         .append("荣和\t")
                         .append(getYakuName(ronList.get(start), false, "ron"))
                         .append("以上")
-                        .append(getYakuName(ronList.get(end), false , "ron"))
-                        .append("以下\n");
-            }
-        }
-    }
-    private static void printDealinRange(StringBuilder results, List<Integer> ronList, int start, int end,
-                                      boolean isDealer, String dealToPlayerName) {
-        if (start == end) {
-            // 只有一个
-            if (isDealer) {
-                results.append("对")
-                        .append(dealToPlayerName)
-                        .append("放铳\t")
-                        .append(getYakuName(ronList.get(start), true, "ron"))
-                        .append("以下\n");
-            } else {
-                results.append("对")
-                        .append(dealToPlayerName)
-                        .append("放铳\t")
-                        .append(getYakuName(ronList.get(start), false, "ron"))
-                        .append("以下\n");
-            }
-        } else if (end == ronList.size() - 1) {
-            // 一直true到最后
-            if (isDealer) {
-                results.append("对")
-                        .append(dealToPlayerName)
-                        .append("放铳\t")
-                        .append(getYakuName(ronList.get(start), true, "ron"))
-                        .append("以上\n");
-            } else {
-                results.append("对")
-                        .append(dealToPlayerName)
-                        .append("放铳\t")
-                        .append(getYakuName(ronList.get(start), false, "ron"))
-                        .append("以上\n");
-            }
-        } else {
-            // 中间一段
-            if (isDealer) {
-                results.append("对")
-                        .append(dealToPlayerName)
-                        .append("放铳\t")
-                        .append(getYakuName(ronList.get(start), true, "ron"))
-                        .append("以上")
-                        .append(getYakuName(ronList.get(end), true, "ron"))
-                        .append("以下\n");
-            } else {
-                results.append("对")
-                        .append(dealToPlayerName)
-                        .append("放铳\t")
-                        .append(getYakuName(ronList.get(start), false, "ron"))
-                        .append("以上")
-                        .append(getYakuName(ronList.get(end), false , "ron"))
-                        .append("以下\n");
-            }
-        }
-    }
-    private static void printBeTsumoRange(StringBuilder results, List<?> tsumoList, int start, int end, boolean isDealer, String fromPlayerName) {
-        if (start == end) {
-            if (isDealer) {
-                results.append("被").append(fromPlayerName).append("亲家自摸\t")
-                        .append(getYakuName((int) tsumoList.get(start), true, "tsumo"))
-                        .append("以下\n");
-            } else {
-                int[] arr = (int[]) tsumoList.get(start);
-                results.append("被").append(fromPlayerName).append("自摸\t")
-                        .append(getYakuName(arr[0], arr[1]))
-                        .append("以下\n");
-            }
-        } else if (end == tsumoList.size() - 1) {
-            if (isDealer) {
-                results.append("被").append(fromPlayerName).append("亲家自摸\t")
-                        .append(getYakuName((int) tsumoList.get(start), true, "tsumo"))
-                        .append("以上\n");
-            } else {
-                int[] arr = (int[]) tsumoList.get(start);
-                results.append("被").append(fromPlayerName).append("自摸\t")
-                        .append(getYakuName(arr[0], arr[1]))
-                        .append("以上\n");
-            }
-        } else {
-            if (isDealer) {
-                results.append("被").append(fromPlayerName).append("亲家自摸\t")
-                        .append(getYakuName((int) tsumoList.get(start), true, "tsumo"))
-                        .append("以上")
-                        .append(getYakuName((int) tsumoList.get(end), true, "tsumo"))
-                        .append("以下\n");
-            } else {
-                int[] arrS = (int[]) tsumoList.get(start);
-                int[] arrE = (int[]) tsumoList.get(end);
-                results.append("被").append(fromPlayerName).append("自摸\t")
-                        .append(getYakuName(arrS[0], arrS[1]))
-                        .append("以上")
-                        .append(getYakuName(arrE[0], arrE[1]))
+                        .append(getYakuName(ronList.get(end), false, "ron"))
                         .append("以下\n");
             }
         }
     }
 
+    private static void printDealinRange(StringBuilder results, List<Integer> ronList, int start, int end, boolean isDealer, String dealToPlayerName) {
+        if (start == end) {
+            // 只有一个
+            if (isDealer) {
+                results.append("对")
+                        .append(dealToPlayerName)
+                        .append("放铳\t")
+                        .append(getYakuName(ronList.get(start), true, "ron"))
+                        .append("以下\n");
+            } else {
+                results.append("对")
+                        .append(dealToPlayerName)
+                        .append("放铳\t")
+                        .append(getYakuName(ronList.get(start), false, "ron"))
+                        .append("以下\n");
+            }
+        } else if (end == ronList.size() - 1) {
+            // 一直true到最后
+            if (isDealer) {
+                results.append("对")
+                        .append(dealToPlayerName)
+                        .append("放铳\t")
+                        .append(getYakuName(ronList.get(start), true, "ron"))
+                        .append("以上\n");
+            } else {
+                results.append("对")
+                        .append(dealToPlayerName)
+                        .append("放铳\t")
+                        .append(getYakuName(ronList.get(start), false, "ron"))
+                        .append("以上\n");
+            }
+        } else {
+            // 中间一段
+            if (isDealer) {
+                results.append("对")
+                        .append(dealToPlayerName)
+                        .append("放铳\t");
+                if (start != 0) {
+                    results.append(getYakuName(ronList.get(start), true, "ron"))
+                            .append("以上");
+                }
+                results.append(getYakuName(ronList.get(end), true, "ron"))
+                        .append("以下\n");
+            } else {
+                results.append("对")
+                        .append(dealToPlayerName)
+                        .append("放铳\t");
+                if (start != 0) {
+                    results.append(getYakuName(ronList.get(start), false, "ron"))
+                            .append("以上");
+                }
+                results.append(getYakuName(ronList.get(end), false, "ron"))
+                        .append("以下\n");
+            }
+        }
+    }
+
+    private static void printBeTsumoRange(StringBuilder results, List<?> tsumoList, int start, int end, boolean isDealer, String fromPlayerName) {
+        if (start == end) {
+            if (isDealer) {
+                results.append("被")
+                        .append(fromPlayerName)
+                        .append("亲家自摸\t")
+                        .append(getYakuName((int) tsumoList.get(start), true, "tsumo"))
+                        .append("以下\n");
+            } else {
+                int[] arr = (int[]) tsumoList.get(start);
+                results.append("被")
+                        .append(fromPlayerName)
+                        .append("自摸\t")
+                        .append(getYakuName(arr[0], arr[1]))
+                        .append("以下\n");
+            }
+        } else if (end == tsumoList.size() - 1) {
+            if (isDealer) {
+                results.append("被")
+                        .append(fromPlayerName)
+                        .append("亲家自摸\t")
+                        .append(getYakuName((int) tsumoList.get(start), true, "tsumo"))
+                        .append("以上\n");
+            } else {
+                int[] arr = (int[]) tsumoList.get(start);
+                results.append("被")
+                        .append(fromPlayerName)
+                        .append("自摸\t")
+                        .append(getYakuName(arr[0], arr[1]))
+                        .append("以上\n");
+            }
+        } else {
+            if (isDealer) {
+                results.append("被")
+                        .append(fromPlayerName)
+                        .append("亲家自摸\t");
+                if (start != 0) {
+                    results.append(getYakuName((int) tsumoList.get(start), true, "tsumo"))
+                            .append("以上");
+                }
+                results.append(getYakuName((int) tsumoList.get(end), true, "tsumo"))
+                        .append("以下\n");
+            } else {
+                int[] arrS = (int[]) tsumoList.get(start);
+                int[] arrE = (int[]) tsumoList.get(end);
+                results.append("被")
+                        .append(fromPlayerName)
+                        .append("自摸\t");
+                if (start != 0) {
+                    results.append(getYakuName(arrS[0], arrS[1]))
+                            .append("以上");
+                }
+                results.append(getYakuName(arrE[0], arrE[1]))
+                        .append("以下\n");
+            }
+        }
+    }
+    private static void printDealInDangerRange(
+            StringBuilder results, int[] ronList, int start, int end,
+            boolean isDealer, String loserName, String winnerName) {
+        String base = loserName + "点" + winnerName;
+        if (start == end) {
+            results.append(base)
+                    .append("\t")
+                    .append(getYakuName(ronList[start], isDealer, "ron"))
+                    .append("以上会丢晋级资格\n");
+        } else if (end == ronList.length - 1) {
+            results.append(base)
+                    .append("\t")
+                    .append(getYakuName(ronList[start], isDealer, "ron"))
+                    .append("以上会丢晋级资格\n");
+        } else {
+            results.append(base)
+                    .append("\t")
+                    .append(getYakuName(ronList[start], isDealer, "ron"))
+                    .append("以上")
+                    .append(getYakuName(ronList[end], isDealer, "ron"))
+                    .append("以下会丢晋级资格\n");
+        }
+    }
 }
