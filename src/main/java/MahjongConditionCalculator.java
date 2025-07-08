@@ -41,7 +41,7 @@ public class MahjongConditionCalculator extends JFrame {
             dealerGroup.add(dealerButtons[i]);
             dealerPanel.add(dealerButtons[i]);
         }
-        dealerButtons[0].setSelected(true); // 默认东家
+        dealerButtons[3].setSelected(true); // 默认东家
         inputPanel.add(dealerPanel, gbc);
         gbc.gridwidth = 1;
 
