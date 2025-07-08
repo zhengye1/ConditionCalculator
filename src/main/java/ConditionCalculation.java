@@ -38,7 +38,7 @@ public class ConditionCalculation {
                 newScore = Arrays.copyOf(currentScore, playerCount);
                 if (kiriageMangan && tsumoPair[0] == 2000 && tsumoPair[1] == 3900) continue;
                 tsumoPairs.add(tsumoPair);
-                adjustScoreTsumo(newScore, playerIndex, tsumoPair, kyotaku, honba);
+                adjustScoreTsumo(newScore, playerIndex, tsumoPair, kyotaku, honba, dealerIndex);
                 int[] ranking = RankUtil.getRanking(newScore);
                 String pattern = rule.getPattern(newScore);
                 double[] uma = rule.getUma(pattern);
@@ -88,7 +88,8 @@ public class ConditionCalculation {
             int[] ronArray = (!isDealer) ? childRonArr : dealerRonArr;
             for (int score : ronArray) {
                 // 要是切上了就看是不是子家7700或者亲家 11600，是的话不用算
-                if (kiriageMangan && (score == 7700 && !isDealer || (score == 11600 && isDealer))) continue;
+                if (kiriageMangan &&
+                        (score == 7700 && !isDealer || (score == 11600 && isDealer))) continue;
                 ronList.add(score);
                 newScore = Arrays.copyOf(currentScore, playerCount);
                 adjustScoreRon(newScore, i, playerIndex, score, kyotaku, honba);
@@ -316,13 +317,14 @@ public class ConditionCalculation {
     }
 
     // 子家自摸（分数变动）
-    private static void adjustScoreTsumo(Integer[] currentScore, int playerId, int[] pay, int kyotaku, int honba) {
+    private static void adjustScoreTsumo(Integer[] currentScore, int playerId, int[] pay,
+                                         int kyotaku, int honba, int dealerIndex) {
         int n = currentScore.length;
 
         // pay[0]: 子家每家支付, pay[1]: 亲家支付
         for (int i = 0; i < n; i++) {
             if (i == playerId) continue;
-            if (i == 3) currentScore[i] -= (pay[1] + 100 * honba); // 假设3号为亲家
+            if (i == dealerIndex) currentScore[i] -= (pay[1] + 100 * honba); // 假设3号为亲家
             else currentScore[i] -= (pay[0] + 100 * honba);
         }
         currentScore[playerId] += 2 * pay[0] + pay[1] + 300 * honba + kyotaku;
