@@ -46,11 +46,11 @@ public class ConditionCalculation {
                 resultList.add(isQualified(total, playerIndex, winningCondition, starting));
             }
         } else {
-            for (int j : dealerTsumoArr) {
-                if (kiriageMangan && j == 3900) continue;
-                tsumoDealer.add(j);
+            for (int pay : dealerTsumoArr) {
+                if (kiriageMangan && pay == 3900) continue;
+                tsumoDealer.add(pay);
                 newScore = Arrays.copyOf(currentScore, playerCount);
-                adjustScoreTsumo(newScore, playerIndex, j, kyotaku, honba);
+                adjustScoreTsumo(newScore, playerIndex, pay, kyotaku, honba);
                 int[] ranking = RankUtil.getRanking(newScore);
                 String pattern = rule.getPattern(newScore);
                 double[] uma = rule.getUma(pattern);
@@ -61,7 +61,7 @@ public class ConditionCalculation {
         // 如果整个list都是false的话，那就简单输出自摸无条件
         if (resultList.stream()
                 .noneMatch(x -> x)) {
-            results.append("自摸无条件\n");
+            results.append("自摸\t无条件\n");
         } else {
             List<?> tsumoList = isDealer ? tsumoDealer : tsumoPairs;
             boolean last = false;
@@ -88,8 +88,7 @@ public class ConditionCalculation {
             int[] ronArray = (!isDealer) ? childRonArr : dealerRonArr;
             for (int score : ronArray) {
                 // 要是切上了就看是不是子家7700或者亲家 11600，是的话不用算
-                if (kiriageMangan &&
-                        (score == 7700 && !isDealer || (score == 11600 && isDealer))) continue;
+                if (kiriageMangan && (score == 7700 && !isDealer || (score == 11600 && isDealer))) continue;
                 ronList.add(score);
                 newScore = Arrays.copyOf(currentScore, playerCount);
                 adjustScoreRon(newScore, i, playerIndex, score, kyotaku, honba);
@@ -181,12 +180,7 @@ public class ConditionCalculation {
                     beTsumoChildPairs.add(tsumoPair);
 
                     // 模拟“other”自摸，把自己(playerIndex)视作失分方
-                    for (int i = 0; i < playerCount; i++) {
-                        if (i == other) continue;
-                        if (i == dealerIndex) newScore[i] -= (tsumoPair[1] + 100 * honba);
-                        else newScore[i] -= (tsumoPair[0] + 100 * honba);
-                    }
-                    newScore[other] += 2 * tsumoPair[0] + tsumoPair[1] + 300 * honba + kyotaku;
+                    adjustScoreTsumo(newScore, other, tsumoPair, kyotaku, honba, dealerIndex);
 
                     int[] ranking = RankUtil.getRanking(newScore);
                     String pattern = rule.getPattern(newScore);
@@ -219,12 +213,7 @@ public class ConditionCalculation {
                     if (kiriageMangan && score == 3900) continue;
                     newScore = Arrays.copyOf(currentScore, playerCount);
                     beTsumoDealerArr.add(score);
-                    for (int i = 0; i < playerCount; i++) {
-                        if (i == other) continue;
-                        newScore[i] -= (score + 300 * honba);
-                    }
-                    newScore[other] += score * (playerCount - 1) + 300 * honba + kyotaku;
-
+                    adjustScoreTsumo(newScore, other, score, kyotaku, honba);
                     int[] ranking = RankUtil.getRanking(newScore);
                     String pattern = rule.getPattern(newScore);
                     double[] uma = rule.getUma(pattern);
@@ -256,10 +245,7 @@ public class ConditionCalculation {
         return results.toString();
     }
 
-    public static String calcDangerByOthersDealIn(
-            Double[] starting, Integer[] currentScore, int myIdx,
-            int kyotaku, int honba, int winningCondition,
-            Rule rule, String[] playerNames, boolean kiriageMangan, int dealerIndex) {
+    public static String calcDangerByOthersDealIn(Double[] starting, Integer[] currentScore, int myIdx, int kyotaku, int honba, int winningCondition, Rule rule, String[] playerNames, boolean kiriageMangan, int dealerIndex) {
         int n = currentScore.length;
         StringBuilder result = new StringBuilder();
 
@@ -275,9 +261,8 @@ public class ConditionCalculation {
                 List<Boolean> loseDanger = new ArrayList<>();
 
                 for (int ron : ronArr) {
-                    if (kiriageMangan && (
-                            (!winnerIsDealer && ron == 7700) ||
-                                    (winnerIsDealer && ron == 11600))) continue;
+                    if (kiriageMangan && ((!winnerIsDealer && ron == 7700) || (winnerIsDealer && ron == 11600)))
+                        continue;
                     Integer[] tempScore = Arrays.copyOf(currentScore, n);
                     adjustScoreRon(tempScore, loser, winner, ron, kyotaku, honba);
 
@@ -291,24 +276,21 @@ public class ConditionCalculation {
                 }
 
                 // 输出区间
-                if (loseDanger.stream().anyMatch(x -> x)) {
+                if (loseDanger.stream()
+                        .anyMatch(x -> x)) {
                     boolean last = false;
                     int start = -1;
                     for (int j = 0; j < loseDanger.size(); j++) {
                         boolean curr = loseDanger.get(j);
                         if (!last && curr) start = j;
                         if (last && !curr) {
-                            printDealInDangerRange(
-                                    result, ronArr, start, j - 1, winnerIsDealer,
-                                    playerNames[loser], playerNames[winner]);
+                            printDealInDangerRange(result, ronArr, start, j - 1, winnerIsDealer, playerNames[loser], playerNames[winner]);
                             start = -1;
                         }
                         last = curr;
                     }
                     if (last) {
-                        printDealInDangerRange(
-                                result, ronArr, start, loseDanger.size() - 1, winnerIsDealer,
-                                playerNames[loser], playerNames[winner]);
+                        printDealInDangerRange(result, ronArr, start, loseDanger.size() - 1, winnerIsDealer, playerNames[loser], playerNames[winner]);
                     }
                 }
             }
@@ -317,8 +299,16 @@ public class ConditionCalculation {
     }
 
     // 子家自摸（分数变动）
-    private static void adjustScoreTsumo(Integer[] currentScore, int playerId, int[] pay,
-                                         int kyotaku, int honba, int dealerIndex) {
+
+    /**
+     * @param currentScore 目前分数
+     * @param playerId     自摸玩家
+     * @param pay          自摸的点数
+     * @param kyotaku      供托
+     * @param honba        本场
+     * @param dealerIndex  亲家Index
+     */
+    private static void adjustScoreTsumo(Integer[] currentScore, int playerId, int[] pay, int kyotaku, int honba, int dealerIndex) {
         int n = currentScore.length;
 
         // pay[0]: 子家每家支付, pay[1]: 亲家支付
@@ -670,9 +660,8 @@ public class ConditionCalculation {
             }
         }
     }
-    private static void printDealInDangerRange(
-            StringBuilder results, int[] ronList, int start, int end,
-            boolean isDealer, String loserName, String winnerName) {
+
+    private static void printDealInDangerRange(StringBuilder results, int[] ronList, int start, int end, boolean isDealer, String loserName, String winnerName) {
         String base = loserName + "点" + winnerName;
         if (start == end) {
             results.append(base)
@@ -686,10 +675,12 @@ public class ConditionCalculation {
                     .append("以上会丢晋级资格\n");
         } else {
             results.append(base)
-                    .append("\t")
-                    .append(getYakuName(ronList[start], isDealer, "ron"))
-                    .append("以上")
-                    .append(getYakuName(ronList[end], isDealer, "ron"))
+                    .append("\t");
+            if (start != 0) {
+                results.append(getYakuName(ronList[start], isDealer, "ron"))
+                        .append("以上");
+            }
+            results.append(getYakuName(ronList[end], isDealer, "ron"))
                     .append("以下会丢晋级资格\n");
         }
     }
