@@ -120,9 +120,9 @@ public class TenpaiAdvanceDecision {
         int lose = penalty / (n - tenpaiNum);
         for (int i = 0; i < n; i++) {
             if (tenpai.contains(i)) {
-                scores[i] += gain * (n - tenpaiNum);
+                scores[i] += gain ;
             } else {
-                scores[i] -= lose * tenpaiNum;
+                scores[i] -= lose ;
             }
         }
     }
