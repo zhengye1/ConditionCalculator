@@ -189,7 +189,7 @@ public class MahjongConditionCalculator extends JFrame {
         topPanel.add(tenpaiArea, BorderLayout.EAST);
 
         // --------------- 结果输出 ---------------
-        JPanel outputPanel = new JPanel(new GridLayout(2, 2, 12, 12));
+        JPanel outputPanel = new JPanel(new GridLayout(1, 5, 12, 12));
         for (int i = 0; i < PLAYER_COUNT; i++) {
             JPanel playerPanel = new JPanel(new BorderLayout(5, 5));
             resultAreas[i] = new JTextArea(7, 22);
@@ -201,10 +201,12 @@ public class MahjongConditionCalculator extends JFrame {
             playerPanel.add(scroll, BorderLayout.CENTER);
             outputPanel.add(playerPanel);
         }
-
+        JScrollPane tenpaiScroll = new JScrollPane(tenpaiArea);
+        outputPanel.add(tenpaiScroll);
         getContentPane().setLayout(new BorderLayout());
-        getContentPane().add(topPanel, BorderLayout.NORTH); // 输入 + 听牌区
+        getContentPane().add(inputPanel, BorderLayout.NORTH); // 输入 + 听牌区
         getContentPane().add(outputPanel, BorderLayout.CENTER); // 四人结果区
+
 
         ruleBox.addActionListener(e -> {
             String ruleType = (String) ruleBox.getSelectedItem();
