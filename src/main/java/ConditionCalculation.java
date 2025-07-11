@@ -79,7 +79,7 @@ public class ConditionCalculation {
                 printTsumoRange(results, tsumoList, start, resultList.size() - 1, isDealer);
             }
         }
-
+        results.append("=============================\n");
         // 2. 荣和所有情况
         for (int i = 0; i < playerCount; i++) {
             resultList.clear();
@@ -122,6 +122,7 @@ public class ConditionCalculation {
         }
 
         if (winningCondition != 1) {
+            results.append("=============================\n");
             // 3. 放铳情况
             for (int i = 0; i < playerCount; i++) {
                 resultList.clear();
@@ -163,6 +164,7 @@ public class ConditionCalculation {
             }
         }
 
+        results.append("=============================\n");
         // 4. 被自摸的情况
         for (int other = 0; other < playerCount; other++) {
             if (other == playerIndex) continue;
