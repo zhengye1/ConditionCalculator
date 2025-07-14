@@ -556,13 +556,13 @@ public class ConditionCalculation {
                         .append(dealToPlayerName)
                         .append("放铳\t")
                         .append(getYakuName(ronList.get(start), true, "ron"))
-                        .append("以下\n");
+                        .append("\n");
             } else {
                 results.append("对")
                         .append(dealToPlayerName)
                         .append("放铳\t")
                         .append(getYakuName(ronList.get(start), false, "ron"))
-                        .append("以下\n");
+                        .append("\n");
             }
         } else if (end == ronList.size() - 1) {
             // 一直true到最后
