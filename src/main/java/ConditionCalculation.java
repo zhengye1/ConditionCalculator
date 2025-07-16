@@ -101,7 +101,7 @@ public class ConditionCalculation {
             if (resultList.stream()
                     .noneMatch(x -> x)) {
                 results.append(player[i])
-                        .append("\t荣和\t无条件");
+                        .append("\t荣和\t无条件\n");
             } else {
                 boolean last = false;
                 int start = -1;
