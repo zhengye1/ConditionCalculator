@@ -329,7 +329,7 @@ public class ConditionCalculation {
         // 亲家自摸, 每家都付一样
         for (int i = 0; i < n; i++) {
             if (i == playerId) continue;
-            currentScore[i] -= (pay + 300 * honba);
+            currentScore[i] -= (pay + 100 * honba);
         }
         currentScore[playerId] += pay * (n - 1) + 300 * honba + kyotaku;
 
