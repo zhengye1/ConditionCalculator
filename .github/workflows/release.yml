@@ -21,14 +21,17 @@ jobs:
       - name: Build with Maven
         run: mvn clean package -DskipTests
 
-      - name: Copy and rename jar to artifact
+      - name: Copy and rename jars to artifact
         run: |
           mkdir artifact
-          cp target/*.jar artifact/ConditionalCalculator.jar
+          cp target/ConditionCalculator-1.0-SNAPSHOT.jar artifact/ConditionalCalculator.jar
+          cp target/ConditionCalculator-*-formula.jar artifact/FormulaCalculator.jar
 
-      - name: Upload Jar to GitHub Release
+      - name: Upload Jars to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: artifact/ConditionalCalculator.jar
+          files: |
+            artifact/ConditionalCalculator.jar
+            artifact/FormulaCalculator.jar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
