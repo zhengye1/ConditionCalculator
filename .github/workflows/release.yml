@@ -33,5 +33,6 @@ jobs:
           files: |
             artifact/ConditionalCalculator.jar
             artifact/FormulaCalculator.jar
+          prerelease: ${{ contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc') || contains(github.ref_name, '-alpha') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
